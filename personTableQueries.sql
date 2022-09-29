@@ -34,3 +34,31 @@ select BusinessEntityID,
 		case when Suffix is null then '' else concat(' ',Suffix) end
 			) as formatted_name
 from Person.Person
+go
+
+/**** This script turns the formatted name script above into a function named udfFormattedFullName
+		that can be used in any query where the BusinessEntityID is available to 
+		provide the formatted name with having to use the script **********/
+
+create or alter function udfFormattedFullName(@BusinessEntityID int)
+Returns nvarchar(75)
+as
+begin
+	Declare @formattedFullName nvarchar(75)
+	set @formattedFullName =
+		(
+		select 
+		concat(
+		case when Title is null then '' else concat(Title,' ') end, FirstName, ' ',
+		case when left(MiddleName,1) is null then '' else concat(left(MiddleName,1),'. ') end,
+		LastName,
+		case when Suffix is null then '' else concat(' ',Suffix) end
+			) as formattedName
+		from Person.Person
+		where BusinessEntityID = @BusinessEntityID)
+    return @formattedFullName
+end
+go
+
+
+
